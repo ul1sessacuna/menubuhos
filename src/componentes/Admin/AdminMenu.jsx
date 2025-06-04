@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { db } from "./firebaseConfig";
+import { db } from "../../FirebaseConfig";
 import { collection, getDocs, addDoc, deleteDoc, doc } from "firebase/firestore";
 
 export default function AdminMenu() {
