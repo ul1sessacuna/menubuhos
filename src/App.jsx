@@ -5,19 +5,19 @@ import Login from './componentes/Login/Login'
 import ProtectedRoute from './componentes/ProtectedRoute';
 
 function App() {
+  const [logeado, setLogeado] = useState(false);
+
   return (
-    <Routes>
-      <Route path="/" element={<PublicMenu />} />
-      <Route path="/login" element={<Login />} />
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute>
-            <AdminMenu />
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
+    <>
+      {logeado ? (
+        <AdminMenu />
+      ) : (
+        <>
+          <PublicMenu />
+          <Login onLogin={() => setLogeado(true)} />
+        </>
+      )}
+    </>
   );
 }
 

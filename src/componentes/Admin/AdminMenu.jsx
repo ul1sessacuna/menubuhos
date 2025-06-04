@@ -1,105 +1,46 @@
-import { useEffect, useState } from 'react';
-import './AdminMenu.css';
+import { useEffect, useState } from "react";
+import { db } from "./firebaseConfig";
+import { collection, getDocs, addDoc, deleteDoc, doc } from "firebase/firestore";
 
-function AdminMenu() {
+export default function AdminMenu() {
     const [tragos, setTragos] = useState([]);
-    const [nuevoTrago, setNuevoTrago] = useState({ nombre: '', precio: '', descripcion: '' });
-    const [mostrarLista, setMostrarLista] = useState(false);
-    const [modoEdicion, setModoEdicion] = useState(null);
+    const [nuevoTrago, setNuevoTrago] = useState("");
+
+    const cargarTragos = async () => {
+        const querySnapshot = await getDocs(collection(db, "tragos"));
+        const lista = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setTragos(lista);
+    };
 
     useEffect(() => {
-        const almacenados = JSON.parse(localStorage.getItem('tragos')) || [];
-        setTragos(almacenados);
+        cargarTragos();
     }, []);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setNuevoTrago({ ...nuevoTrago, [name]: value });
+    const agregarTrago = async () => {
+        if (nuevoTrago.trim() === "") return;
+        await addDoc(collection(db, "tragos"), { nombre: nuevoTrago });
+        setNuevoTrago("");
+        cargarTragos();
     };
 
-    const agregarTrago = () => {
-        if (!nuevoTrago.nombre || !nuevoTrago.precio) return;
-        const actualizados = [...tragos, nuevoTrago];
-        setTragos(actualizados);
-        localStorage.setItem('tragos', JSON.stringify(actualizados));
-        setNuevoTrago({ nombre: '', precio: '', descripcion: '' });
-    };
-
-    const borrarTrago = (index) => {
-        const actualizados = tragos.filter((_, i) => i !== index);
-        setTragos(actualizados);
-        localStorage.setItem('tragos', JSON.stringify(actualizados));
-    };
-
-    const editarTrago = (index) => {
-        setModoEdicion(index);
-        setNuevoTrago(tragos[index]);
-    };
-
-    const actualizarTrago = () => {
-        const actualizados = [...tragos];
-        actualizados[modoEdicion] = nuevoTrago;
-        setTragos(actualizados);
-        localStorage.setItem('tragos', JSON.stringify(actualizados));
-        setNuevoTrago({ nombre: '', precio: '', descripcion: '' });
-        setModoEdicion(null);
+    const eliminarTrago = async (id) => {
+        await deleteDoc(doc(db, "tragos", id));
+        cargarTragos();
     };
 
     return (
-        <div className="admin-container">
-            <h2>Administrar Tragos</h2>
-
-            <div className="formulario-trago">
-                <input
-                    type="text"
-                    name="nombre"
-                    placeholder="Nombre"
-                    value={nuevoTrago.nombre}
-                    onChange={handleChange}
-                />
-                <input
-                    type="number"
-                    name="precio"
-                    placeholder="Precio"
-                    value={nuevoTrago.precio}
-                    onChange={handleChange}
-                />
-                <input
-                    type="text"
-                    name="descripcion"
-                    placeholder="Descripción"
-                    value={nuevoTrago.descripcion}
-                    onChange={handleChange}
-                />
-                {modoEdicion !== null ? (
-                    <button onClick={actualizarTrago}>Actualizar</button>
-                ) : (
-                    <button onClick={agregarTrago}>Agregar</button>
-                )}
-            </div>
-
-            <button className="mostrar-btn" onClick={() => setMostrarLista(!mostrarLista)}>
-                {mostrarLista ? 'Ocultar bebidas' : 'Mostrar bebidas'}
-            </button>
-
-            {mostrarLista && (
-                <ul className="lista-tragos">
-                    {tragos.map((trago, index) => (
-                        <li key={index}>
-                            <div className="trago-info">
-                                <strong>{trago.nombre}</strong> - ${trago.precio}
-                                <p>{trago.descripcion}</p>
-                            </div>
-                            <div className="botones">
-                                <button onClick={() => editarTrago(index)}>Editar</button>
-                                <button onClick={() => borrarTrago(index)}>Eliminar</button>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            )}
+        <div>
+            <h2>Panel de Administración</h2>
+            <input value={nuevoTrago} onChange={(e) => setNuevoTrago(e.target.value)} placeholder="Nuevo trago" />
+            <button onClick={agregarTrago}>Agregar</button>
+            <ul>
+                {tragos.map((trago) => (
+                    <li key={trago.id}>
+                        {trago.nombre}
+                        <button onClick={() => eliminarTrago(trago.id)}>Eliminar</button>
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 }
-
-export default AdminMenu;

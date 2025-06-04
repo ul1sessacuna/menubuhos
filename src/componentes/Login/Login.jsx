@@ -1,59 +1,48 @@
-import React, { useState } from 'react';
-import './Login.css';
-import { useNavigate } from 'react-router-dom';
+// src/Login.jsx
+import { useState } from "react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "./firebase";
+import { useNavigate } from "react-router-dom";
 
-function Login() {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+export default function Login() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
-
-        const validUsername = 'Facundo';
-        const validPassword = 'buhosdisco';
-
-        if (username === validUsername && password === validPassword) {
-            // Simulamos estar logueados
-            localStorage.setItem('loggedIn', 'true');
-            navigate('/admin');
-        } else {
-            setError('Usuario o contraseña incorrectos');
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            navigate("/admin");
+        } catch (err) {
+            setError("Credenciales incorrectas.");
         }
     };
 
     return (
-        <div className="login-container">
-            <form className="login-form" onSubmit={handleLogin}>
-                <h2>Iniciar Sesión</h2>
-                {error && <p className="error">{error}</p>}
-                <div className="form-group">
-                    <label htmlFor="username">Usuario</label>
-                    <input
-                        id="username"
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                        placeholder="Ingresá tu usuario"
-                    />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="password">Contraseña</label>
-                    <input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        placeholder="Ingresá tu contraseña"
-                    />
-                </div>
-                <button type="submit">Ingresar</button>
+        <div className="p-4 max-w-sm mx-auto mt-20 bg-white rounded shadow">
+            <h2 className="text-xl mb-4 font-bold text-center">Iniciar sesión</h2>
+            <form onSubmit={handleLogin}>
+                <input
+                    type="email"
+                    placeholder="Email"
+                    className="w-full mb-2 p-2 border rounded"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                />
+                <input
+                    type="password"
+                    placeholder="Contraseña"
+                    className="w-full mb-2 p-2 border rounded"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                />
+                {error && <p className="text-red-500 text-sm">{error}</p>}
+                <button className="w-full bg-blue-600 text-white py-2 mt-2 rounded">Ingresar</button>
             </form>
         </div>
     );
 }
-
-export default Login;
